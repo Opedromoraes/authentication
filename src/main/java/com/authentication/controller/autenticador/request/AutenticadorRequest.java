@@ -1,5 +1,6 @@
 package com.authentication.controller.autenticador.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AutenticadorRequest {
 
+    @NotBlank
     private String login;
+    @NotBlank
     private String senha;
 }
 

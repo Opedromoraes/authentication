@@ -17,28 +17,33 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class SecurityFilter extends OncePerRequestFilter { // extende da classe -> filtro que acontece uma vez na requisição
+public class SecurityFilter extends OncePerRequestFilter {
+
+    private static final String BEARER_PREFIX = "Bearer ";
 
     private final TokenService service;
     private final UsuarioRepository repository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
-        if (token != null){
+        var token = recoverToken(request);
+        if (token != null) {
             var login = service.validarToken(token);
-            UserDetails user = repository.findByLogin(login);
+            UserDetails user = login.isEmpty() ? null : repository.findByLogin(login);
 
-            var authentication = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication); // fez a validação e a salvou no contexto do usuário
+            // Invalid token or unknown user: leave the request unauthenticated so protected
+            // endpoints answer 401 through the authentication entry point.
+            if (user != null) {
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
-        filterChain.doFilter(request,response); // chamando o próximo filtro (pois já foi finalizado o que era necessário realizar)
+        filterChain.doFilter(request, response);
     }
 
-    private String recoverToken(HttpServletRequest request){
-        var authHeader = request.getHeader("Authorization"); // onde o usuário vai passar o token
-        if (authHeader == null) return null;
-        return authHeader.replace("Bearer ",""); // substituição ocorre para substituir o valor do Bearer (portador) por somente o valor do token
+    private String recoverToken(HttpServletRequest request) {
+        var authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) return null;
+        return authHeader.substring(BEARER_PREFIX.length());
     }
-
 }

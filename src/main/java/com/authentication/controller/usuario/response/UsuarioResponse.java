@@ -14,6 +14,5 @@ public class UsuarioResponse {
 
     private Long id;
     private String login;
-    private String senha;
     private UserRole role;
 }

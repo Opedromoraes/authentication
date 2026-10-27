@@ -5,6 +5,7 @@ import com.authentication.controller.produto.response.ProdutoResponse;
 import com.authentication.domain.dto.ProdutoDTO;
 import com.authentication.domain.mapper.ProdutoMapper;
 import com.authentication.service.ProdutoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,8 @@ public class ProdutoController {
     private final ProdutoService service;
     private final ProdutoMapper mapper;
 
-
-
     @PostMapping
-    public ResponseEntity<ProdutoResponse> criarProduto(@RequestBody ProdutoRequest request){
+    public ResponseEntity<ProdutoResponse> criarProduto(@RequestBody @Valid ProdutoRequest request){
         ProdutoDTO produtoDTO = service.criarProduto(mapper.requestToDto(request));
         ProdutoResponse response = mapper.dtoToResponse(produtoDTO);
 
