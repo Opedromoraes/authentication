@@ -5,47 +5,46 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.authentication.domain.entity.Usuario;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Duration;
+import java.time.Instant;
 
 @Service
-@RequiredArgsConstructor
 public class TokenService {
 
-    @Value("${api.security.token.secret")
+    static final String ISSUER = "auth-api";
+    private static final Duration EXPIRATION = Duration.ofHours(1);
+
+    @Value("${api.security.token.secret}")
     private String secret;
 
     public String gerarToken(Usuario usuario) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret); // algorítimo escolhido recebe um "secret" para que os algoritimos recebam HASHS (chaves) >>ÚNICOS<<
-            String token = JWT.create()
-                    .withIssuer("auth-api") // nome da aplicação
-                    .withSubject(usuario.getLogin()) //usuario que recebe o token
-                    .withExpiresAt(LocalDateTime.now()
-                            .plusHours(1)
-                            .toInstant(ZoneOffset.of("-03:00"))) //  indicando para o instante -> FUSO HORÁRIO -3 = horário de brasilia, BR
-                    .sign(algorithm); // assinatura e geração final
-
-            return token;
-        } catch (JWTCreationException exception) { // se der erro retorna um erro "bonitinho" pro usuário
-            throw new RuntimeException("Erro na geração do token", exception);
+            return JWT.create()
+                    .withIssuer(ISSUER)
+                    .withSubject(usuario.getLogin())
+                    .withExpiresAt(Instant.now().plus(EXPIRATION))
+                    .sign(Algorithm.HMAC256(secret));
+        } catch (JWTCreationException exception) {
+            throw new IllegalStateException("Error while generating token", exception);
         }
     }
 
-    public String validarToken(String token){
+    /**
+     * Returns the token subject (login), or an empty string when the token is invalid or expired,
+     * so callers simply leave the request unauthenticated.
+     */
+    public String validarToken(String token) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.require(algorithm)
-                    .withIssuer("auth-api")
+            return JWT.require(Algorithm.HMAC256(secret))
+                    .withIssuer(ISSUER)
                     .build()
-                    .verify(token) // decriptografando o token
-                    .getSubject();  //peguei o subject que salvei dentro do token
-        } catch (JWTVerificationException exception){ // token inválido
-            return ""; // retornar string vazia, pois ométodo que receber uma spring vazia, vai retornar o erro de não autorizado
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException exception) {
+            return "";
         }
     }
 }

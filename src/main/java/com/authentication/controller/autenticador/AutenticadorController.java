@@ -19,21 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("autenticador")
 public class AutenticadorController {
 
-    // A validação das senhas vai ser feita através do Hash (criptografado após o usuário lançar sua senha)...
-    //... comparado com o Hash do banco de dados (uma vez cadastrado anteriormente -> Admin ou User)
-
     private final AuthenticationManager authenticationManager;
     private final TokenService service;
 
-    @PostMapping("/login") // enpoint para descobrir se a senha passada pelo usuário é a que está salva no banco
-    public ResponseEntity login(@RequestBody @Valid AutenticadorRequest request){
+    @PostMapping("/login")
+    public ResponseEntity<AutenticadorResponse> login(@RequestBody @Valid AutenticadorRequest request){
 
-        var usernamePassword = new UsernamePasswordAuthenticationToken(request.getLogin(),request.getSenha()); // criptografando
-        var autenticador = authenticationManager.authenticate(usernamePassword); // validando a senha
+        var usernamePassword = new UsernamePasswordAuthenticationToken(request.getLogin(),request.getSenha());
+        var autenticador = authenticationManager.authenticate(usernamePassword);
 
-        var token = service.gerarToken((Usuario) autenticador.getPrincipal()); // pegando o objeto principal e fazendo um cast para Usuario
+        var token = service.gerarToken((Usuario) autenticador.getPrincipal());
 
-        return ResponseEntity.ok(new AutenticadorResponse(token)); // retornando o token para o usuário
+        return ResponseEntity.ok(new AutenticadorResponse(token));
     }
 
 }

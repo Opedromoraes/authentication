@@ -3,6 +3,7 @@ package com.authentication.service;
 import com.authentication.domain.dto.ProdutoDTO;
 import com.authentication.domain.entity.Produto;
 import com.authentication.domain.mapper.ProdutoMapper;
+import com.authentication.exception.ResourceNotFoundException;
 import com.authentication.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class ProdutoService {
 
     public ProdutoDTO buscarProduto(Long id) {
         Produto produto = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product " + id + " not found"));
 
         return mapper.entityToDTO(produto);
     }

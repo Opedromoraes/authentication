@@ -2,14 +2,17 @@ spring:
   application:
     name: authentication
   datasource:
-    url: jdbc:postgresql://localhost:5432/authentication_db
-    username: admin
-    password: ADMIN
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/authentication_db}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:ADMIN}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+api:
+  security:
+    token:
+      # DEV ONLY - NOT FOR PRODUCTION. Always set JWT_SECRET outside local development.
+      secret: ${JWT_SECRET:dev-only-insecure-secret-change-me}
